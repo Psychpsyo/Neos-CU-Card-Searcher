@@ -3,6 +3,7 @@ import websockets
 import json
 import traceback
 import requests
+import time
 
 #counter names in list to convert from name to int
 counterIdentifiers = ["Chaos", "Charge", "Ember", "Heaven", "Invasion", "Protection", "Stinger", "Time", "Weakness", "Wrath", "Rose", "Emergence"]
@@ -16,8 +17,11 @@ async def cardSearcherSocket(websocket, path):
 			if message.startswith("[query]"):
 				cardList = requests.post("https://crossuniverse.net/cardInfo", json = json.loads(message[7:])).json()
 				
-				for card in cardList:
+				for i, card in enumerate(cardList):
 					await websocket.send("[list]" + card["cardID"] + "|" + card["cardType"])
+					# sleep to not overwhelm the card searching in Neos which is crashing people
+					if i % 100 == 99:
+						time.sleep(0.15)
 			
 			#requesting detailed info about one specific card
 			elif message.startswith("[details]"):
